@@ -53,7 +53,8 @@ function UserRepo({ mode }) {
   return (
     <div className={`min-h-screen flex flex-col items-center py-10 px-4 transition-colors duration-300 ${mode === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-800"
       }`}>
-      <h1 className={`px-4 py-2 rounded-md mb-8 transition cursor-pointer ${mode === "dark"
+      <div className="flex w-full max-w-5xl justify-between items-center">
+        <h1 className={`px-4 py-2 rounded-md mb-8 transition cursor-pointer ${mode === "dark"
           ? "bg-white hover:bg-grey-600 text-black"
           : "bg-green-400 hover:bg-green-500 text-white"
         }`}>
@@ -66,6 +67,7 @@ function UserRepo({ mode }) {
       >
         Back
       </button>
+      </div>
 
       <ErrorMessage message={error} />
 
