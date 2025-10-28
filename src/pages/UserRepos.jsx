@@ -50,7 +50,7 @@ function UserRepo({ mode }) {
           : "bg-gray-100 text-gray-800"
       }`}
     >
-      <div className="flex flex-col sm:flex-row w-full max-w-5xl justify-between items-center gap-4 sm:gap-0">
+      <div className="flex flex-row w-full max-w-5xl justify-between items-center gap-4 sm:gap-0">
         <h1
           className={`px-4 py-2 rounded-md transition ${
             mode === "dark"
@@ -62,7 +62,7 @@ function UserRepo({ mode }) {
         </h1>
         <button
           onClick={() => navigate(-1)}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition cursor-pointer w-full sm:w-auto"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition cursor-pointer sm:w-auto"
         >
           Back
         </button>
