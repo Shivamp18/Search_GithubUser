@@ -40,7 +40,6 @@ function App() {
           path="/user/:username"
           element={<UserRepos mode={mode} userData={userData} />}
         />
-        <Route path="/user" element={<UserDetails mode={mode} />} />
       </Routes>
     </ThemeProvider>
   );
