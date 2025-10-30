@@ -37,7 +37,7 @@ function App() {
         />
         <Route
           path="/user/:username"
-          element={<UserRepos mode={mode} userData={userData} />}
+          element={<UserRepos mode={mode} userData={userData} setUserData={setUserData} />}
         />
       </Routes>
     </ThemeProvider>

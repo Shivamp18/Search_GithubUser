@@ -6,7 +6,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { FaStar } from "react-icons/fa";
 import ErrorMessage from "../components/ErrorMessage";
 
-function UserRepo({ mode }) {
+function UserRepo({ mode, userData, setUserData }) {
   const { username } = useParams();
   const [repos, setRepos] = useState([]);
   const [error, setError] = useState("");
@@ -42,26 +42,46 @@ function UserRepo({ mode }) {
     fetchRepos();
   }, [username, page]);
 
+  const fetchUserName = async () => {
+    try {
+      event.preventDefault();
+      const path = window.location.pathname;
+      const segments = path.split("/");
+      const userName = segments[2];
+
+      setError("");
+      const response = await fetch(`https://api.github.com/users/${userName}`);
+      const data = await response.json();
+      if (data.message === "Not Found") {
+        setError("User not found");
+        setUserData(null);
+      } else {
+        setUserData(data);
+        navigate('/');
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   return (
     <div
-      className={`min-h-screen flex flex-col items-center py-8 px-4 transition-colors duration-300 ${
-        mode === "dark"
-          ? "bg-gray-900 text-white"
-          : "bg-gray-100 text-gray-800"
-      }`}
+      className={`min-h-screen flex flex-col items-center py-8 px-4 transition-colors duration-300 ${mode === "dark"
+        ? "bg-gray-900 text-white"
+        : "bg-gray-100 text-gray-800"
+        }`}
     >
       <div className="flex flex-row w-full max-w-5xl justify-between items-center gap-4 sm:gap-0">
         <h1
-          className={`px-4 py-2 rounded-md transition ${
-            mode === "dark"
-              ? "bg-white text-black"
-              : "bg-green-400 text-white"
-          }`}
+          className={`px-4 py-2 rounded-md transition ${mode === "dark"
+            ? "bg-white text-black"
+            : "bg-green-400 text-white"
+            }`}
         >
           {username}'s Repositories
         </h1>
         <button
-          onClick={() => navigate(-1)}
+          onClick={fetchUserName}
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition cursor-pointer sm:w-auto"
         >
           Back
@@ -85,11 +105,10 @@ function UserRepo({ mode }) {
               {repos.map((repo) => (
                 <li
                   key={repo.id}
-                  className={`flex flex-col sm:flex-row justify-between border-2 rounded-lg p-4 items-start sm:items-center transition-colors duration-300 ${
-                    mode === "dark"
-                      ? "bg-gray-800 border-gray-400 text-white"
-                      : "bg-white border-gray-200 text-gray-900"
-                  }`}
+                  className={`flex flex-col sm:flex-row justify-between border-2 rounded-lg p-4 items-start sm:items-center transition-colors duration-300 ${mode === "dark"
+                    ? "bg-gray-800 border-gray-400 text-white"
+                    : "bg-white border-gray-200 text-gray-900"
+                    }`}
                 >
                   <div className="w-full sm:w-auto">
                     <h2 className="text-lg sm:text-xl font-semibold wrap-break-word">
