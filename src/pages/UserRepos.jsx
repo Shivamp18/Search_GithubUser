@@ -20,7 +20,7 @@ function UserRepo({ mode }) {
     try {
       setLoading(true);
       const res = await fetch(
-        `https:api.github.com/users/${username}/repos?page=${pageNo}&per_page=${itemsPerPage}&sort=updated`
+        `https://api.github.com/users/${username}/repos?page=${pageNo}&per_page=${itemsPerPage}&sort=updated`
       );
 
       if (!res.ok) {
