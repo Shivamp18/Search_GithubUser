@@ -1,147 +1,150 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Stack from "@mui/material/Stack";
-import Pagination from "@mui/material/Pagination";
-import CircularProgress from "@mui/material/CircularProgress";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { FaStar } from "react-icons/fa";
+import Skeleton from "@mui/material/Skeleton";
 import ErrorMessage from "../components/ErrorMessage";
 
-function UserRepo({ mode, userData, setUserData }) {
+function UserRepo({ mode }) {
   const { username } = useParams();
-  const [repos, setRepos] = useState([]);
+  const [repoList, setRepoList] = useState([]);
+  const [pageNo, setPageNo] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [moreData, setMoreData] = useState(true);
   const [error, setError] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const perPage = 5;
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchRepos = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`https://api.github.com/users/${username}`)
-        if (!res.ok) {
-          setError("User Not Found")
-        }
-        const data = await res.json();
-        const repoCount = data.public_repos;
-        setTotalPages(Math.ceil(repoCount / perPage));
-        const repoRes = await fetch(
-          `https://api.github.com/users/${username}/repos?page=${page}&per_page=${perPage}&sort=updated`
-        );
-        if (!repoRes.ok) throw new Error("Failed to load repositories");
-        const repoData = await repoRes.json();
-        setRepos(repoData);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRepos();
-  }, [username, page]);
+  const itemsPerPage = 10;
 
-  const fetchUserName = async () => {
+  const loadRepos = async () => {
+    if (loading || !moreData) return;
+
     try {
-      event.preventDefault();
-      const path = window.location.pathname;
-      const segments = path.split("/");
-      const userName = segments[2];
+      setLoading(true);
+      const res = await fetch(
+        `https:api.github.com/users/${username}/repos?page=${pageNo}&per_page=${itemsPerPage}&sort=updated`
+      );
 
-      setError("");
-      const response = await fetch(`https://api.github.com/users/${userName}`);
-      const data = await response.json();
-      if (data.message === "Not Found") {
-        setError("User not found");
-        setUserData(null);
+      if (!res.ok) {
+        throw new Error("Something went wrong while fetching repos");
+      }
+
+      const data = await res.json();
+
+      if (data.length === 0) {
+        setMoreData(false);
       } else {
-        setUserData(data);
-        navigate('/');
+        setRepoList((prev) => [...prev, ...data]);
+        setPageNo((prev) => prev + 1);
       }
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
+
+  useEffect(() => {
+    loadRepos();
+  }, [username]);
+
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const reachedBottom =
+        window.innerHeight + window.scrollY >= document.body.scrollHeight - 100;
+
+      if (reachedBottom && !loading && moreData) {
+        loadRepos();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [loading, moreData]);
 
   return (
     <div
-      className={`min-h-screen flex flex-col items-center py-8 px-4 transition-colors duration-300 ${mode === "dark"
-        ? "bg-gray-900 text-white"
-        : "bg-gray-100 text-gray-800"
+      className={`min-h-screen flex flex-col items-center py-8 px-4 ${mode === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-800"
         }`}
     >
-      <div className="flex flex-row w-full max-w-5xl justify-between items-center gap-4 sm:gap-0">
-        <h1
-          className={`px-4 py-2 rounded-md transition ${mode === "dark"
-            ? "bg-white text-black"
-            : "bg-green-400 text-white"
-            }`}
-        >
-          {username}'s Repositories
-        </h1>
-        <button
-          onClick={fetchUserName}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition cursor-pointer sm:w-auto"
-        >
-          Back
-        </button>
-      </div>
+      <h1
+        className={`px-4 py-2 rounded-md font-semibold ${mode === "dark"
+          ? "bg-white text-black"
+          : "bg-green-500 text-white"
+          }`}
+      >
+        {username}'s Repositories
+      </h1>
 
       <ErrorMessage message={error} />
 
-      {loading ? (
-        <div className="flex justify-center items-center flex-1 mt-20">
-          <CircularProgress
-            size={60}
-            thickness={5}
-            color={mode === "dark" ? "inherit" : "primary"}
-          />
-        </div>
-      ) : (
-        <>
-          <div className="w-full max-w-5xl mt-6">
-            <ul className="space-y-4">
-              {repos.map((repo) => (
-                <li
-                  key={repo.id}
-                  className={`flex flex-col sm:flex-row justify-between border-2 rounded-lg p-4 items-start sm:items-center transition-colors duration-300 ${mode === "dark"
-                    ? "bg-gray-800 border-gray-400 text-white"
-                    : "bg-white border-gray-200 text-gray-900"
-                    }`}
-                >
-                  <div className="w-full sm:w-auto">
-                    <h2 className="text-lg sm:text-xl font-semibold wrap-break-word">
-                      {repo.name}
-                    </h2>
-                    <p className="mt-2 text-sm sm:text-base wrap-break-word">
-                      {repo.description || "No description"}
-                    </p>
-                  </div>
-                  <div className="mt-3 sm:mt-0 flex flex-col lg:items-end md:items-end text-sm sm:text-base">
-                    <p className="flex items-center gap-1">
-                      <FaStar className="text-yellow-600" /> {repo.stargazers_count}
-                    </p>
-                    <p>{repo.language || "NA"}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+      <div className="w-full max-w-5xl mt-6">
+        <ul className="space-y-4">
+          {repoList.map((repo) => (
+            <li
+              key={repo.id}
+              className={`border-2 rounded-lg p-4 flex flex-col sm:flex-row justify-between sm:items-center ${mode === "dark"
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+                }`}
+            >
+              <div>
+                <h2 className="text-lg font-semibold">{repo.name}</h2>
+                <p className="text-sm mt-1">
+                  {repo.description ? repo.description : "No description"}
+                </p>
+              </div>
+              <div className="mt-2 sm:mt-0 flex flex-col sm:items-end text-sm">
+                <p className="flex items-center gap-1">
+                  <FaStar className="text-yellow-500" /> {repo.stargazers_count}
+                </p>
+                <p>{repo.language ? repo.language : "N/A"}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-          {totalPages > 1 && (
-            <div className="mt-8">
-              <Stack spacing={2} alignItems="center">
-                <Pagination
-                  count={totalPages}
-                  page={page}
-                  onChange={(event, value) => setPage(value)}
-                  color="primary"
-                />
-              </Stack>
+      {loading && moreData && (
+        <div className="w-full max-w-5xl mt-6 space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className={`border-2 rounded-lg p-4 ${mode === "dark"
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+                }`}
+            >
+              <Skeleton
+                variant="text"
+                width="60%"
+                height={24}
+                animation="wave"
+                className={mode === "dark" ? "bg-gray-700" : "bg-gray-300"}
+              />
+              <Skeleton
+                variant="text"
+                width="90%"
+                height={18}
+                animation="wave"
+                className={`mt-2 ${mode === "dark" ? "bg-gray-700" : "bg-gray-300"
+                  }`}
+              />
+              <Skeleton
+                variant="text"
+                width="40%"
+                height={18}
+                animation="wave"
+                className={`mt-2 ${mode === "dark" ? "bg-gray-700" : "bg-gray-300"
+                  }`}
+              />
             </div>
-          )}
-        </>
+          ))}
+        </div>
+      )}
+
+      {!moreData && !loading && (
+        <p className="text-gray-500 mt-6">No more repositories found.</p>
       )}
     </div>
   );
